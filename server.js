@@ -16,6 +16,7 @@ app.prepare().then(()=>{
         console.log('good')
         return app.render(req, res, '/', req.query)
     })
+    
     server.get("*", (req, res)=>{
         return handle(req, res)
     })
