@@ -1,6 +1,7 @@
 //custom express server
 const express = require('express')
 const next = require('next')
+const {User} = require('./models/user_models.js')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = 'localhost'
@@ -16,7 +17,7 @@ app.prepare().then(()=>{
         console.log('good')
         return app.render(req, res, '/', req.query)
     })
-    
+
     server.get("*", (req, res)=>{
         return handle(req, res)
     })
