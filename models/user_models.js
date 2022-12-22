@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import bcrypt from'bcrypt';
 import {MONGODB} from '../data/credentials.js'
 const mongoUri = `mongodb+srv://${MONGODB.dai.user}:${MONGODB.dai.login}@${MONGODB.dai.cluster}/?retryWrites=true&w=majority`;
+mongoose.connect(uri)
 
 const userSchema = mongoose.Schema({
     name:{
@@ -29,7 +30,7 @@ userSchema.methods.findUser = function(username, callback){
     })
 }
 
-userSchema.methods.validPassword = function(password, callback){
+userSchema.methods.validPassword = function(username, password, callback){
     this.findOne({user:username},(err, doc)=>{
         if (doc){
             console.log('user found')
@@ -46,7 +47,6 @@ userSchema.methods.validPassword = function(password, callback){
     })
     
 }
-mongoose.connect(uri)
 const User = mongoose.model("user", userSchema)
 
 async function seedUser(username, password){

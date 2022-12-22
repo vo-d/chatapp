@@ -1,31 +1,23 @@
-//custom express server
 const express = require('express')
-const next = require('next')
-const {User} = require('./models/user_models.js')
+const next = require('next');
 
-const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
-const port = 3000
+const dev = process.env.NODE_ENV !=='production'
+const port  = 3000;
 
-const app = next({dev})
-const handle = app.getRequestHandler()
+const app = next({dev});
+const handle = app.getRequestHandler();
 
 app.prepare().then(()=>{
-    const server = express(); 
-
-    server.get("/", (req, res)=>{
-        console.log('good')
-        return app.render(req, res, '/', req.query)
-    })
+    const server = express()
 
     server.get("*", (req, res)=>{
         return handle(req, res)
     })
-    server.listen(port,(err)=>{
-        if (err) throw err
-        console.log("server ready!")
+    server.post("*", (req, res)=>{
+        return handle(req, res)
     })
+    server.listen(port)
 }).catch((ex)=>{
-    console.error(ex.stack)
+    console.log(ex.stack)
     process.exit(1)
 })
