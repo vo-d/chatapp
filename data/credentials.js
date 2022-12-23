@@ -1,4 +1,4 @@
-export const MONGODB = {
+const MONGODB = {
     robin: {
         user:"rob",
         login:"tukikrna",
@@ -10,8 +10,11 @@ export const MONGODB = {
         cluster: "cluster0.esqge8e.mongodb.net"
     }
 };
-
-export const Session = {
+const Session = {
     secret: "My super secret"
 }
 
+module.exports ={
+    MONGODB: MONGODB,
+    Session: Session
+}

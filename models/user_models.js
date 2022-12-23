@@ -1,62 +1,81 @@
-import mongoose from 'mongoose'
-import bcrypt from'bcrypt';
-import {MONGODB} from '../data/credentials.js'
-const mongoUri = `mongodb+srv://${MONGODB.dai.user}:${MONGODB.dai.login}@${MONGODB.dai.cluster}/?retryWrites=true&w=majority`;
-mongoose.connect(uri)
+const mongoose = require('mongoose')
+const hash = require("pbkdf2-password")();
 
-const userSchema = mongoose.Schema({
-    name:{
+
+const userSchema = new mongoose.Schema({
+    user:{
         type: String,
-        default: '',
         required: true
     },
-    password:{
+    hash:{
         type: String,
-        default: true,
+        required: true
+    },
+    salt:{
+        type: String,
         required: true
     }
-    
+},{
+    statics:{
+        authentication(user, pw, callback){
+            this.findOne({user:user}, (err, doc)=>{
+                if(doc){
+                    console.log('user found')
+                    console.log("Salt: ", doc.salt)
+                    hash({password: pw, salt: doc.salt}, (err, pass, salt, hash)=>{
+                        if(err) return err
+                        if(hash === doc.hash){
+                            return callback(user)
+                        }
+                        else{
+                            console.log('wrong password')
+                            return callback(null)
+                        }
+                    })
+                }
+                else{
+                    console.log("no user found")
+                    return callback(null)
+                }
+            })
+        },
+        findUser(user, callback){
+            this.findOne({user:user}, (err, doc)=>{
+                if(doc){  
+                    console.log('user found')
+                    return callback(user);
+                }
+                else{
+                    console.log('user not found')
+                    return callback(null);
+                }
+            })
+        }
+    }
 })
 
-userSchema.methods.findUser = function(username, callback){
-    this.findOne({user:username},(err, doc)=>{
-        if (doc){
-            console.log('user found')
-            callback(username)
-        }
-        else{
-            callback(null)
-        }
-    })
-}
+const User = mongoose.model('user', userSchema)
 
-userSchema.methods.validPassword = function(username, password, callback){
-    this.findOne({user:username},(err, doc)=>{
-        if (doc){
-            console.log('user found')
-            if(bcrypt.compareSync(password, this.password)){
-                callback(username)
-            }
-            else{
-                callback(null)
-            }
-        }
-        else{
-            callback(null)
-        }
-    })
-    
-}
-const User = mongoose.model("user", userSchema)
+async function seedUser(uri, username, password, isNewUser) {
+    let newUser = {}
+    if(isNewUser){
+        newUser = new User({
+            user: username,
+            hash: "",
+            salt: ""
+        });
+    }
 
-async function seedUser(username, password){
-    await mongoose.connect(mongoUri).catch(console.log);
-    let newUser = new User({
-        user: username,
-        password: bcrypt.hashSync(password, bcrypt.genSalt(8), null)
-    });
+    hash({password: password}, (err, pass, salt, hashed)=>{
+        if (err) throw err;
+        newUser.hash = hashed;
+        newUser.salt = salt;
+    })
+
+    await mongoose.connect(uri).catch(console.log);
+
     return result =  await newUser.save()
-    
+
 }
 
 module.exports ={
